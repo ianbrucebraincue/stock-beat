@@ -8,7 +8,7 @@ export default function StockAPI () {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const apiUri = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${stockSymbol}&interval=30min&month=2009-01&outputsize=full&apikey=${process.env.REACT_APP_API_KEY}`;
+    const apiUri = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${stockSymbol}&interval=30min&month=2009-01&outputsize=full&apikey=${process.env.REACT_APP_ALPHA_VANTAGE_KEY}`;
 
     function Error({ error }) {
         if (error) {
@@ -52,7 +52,6 @@ export default function StockAPI () {
             )
         }
     }
-      
 
     useEffect(() => {
         const fetchData = async () => {
