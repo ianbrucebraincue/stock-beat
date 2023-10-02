@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from 'axios';
 
 export default function StockAPI () {
@@ -11,6 +11,7 @@ export default function StockAPI () {
 
     const dataSet = [];
     const [data, setData] = useState([]);
+    const [filteredData, setFilteredData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -26,45 +27,41 @@ export default function StockAPI () {
         }
     }
 
-    function Data({ data, loading }) {
-        // access all time series data for the month/year
-        let dataLoaded = data["Time Series (30min)"];
+    // function Data({ data, loading }) {
+    //     // access all time series data for the month/year
+    //     let dataLoaded = data["Time Series (30min)"];
 
-        if (loading) {
-            return (
-                <ul>
-                    <li>Yeah loading.</li>
-                </ul>
-            )
-        } else if(!loading && dataLoaded) {
-            // loop through each day and 30 min key
-            for(const key in dataLoaded) {
-                // if key has desired date, add to dataSet array for further use
-                if(key.includes(dateString) ){
-                    // add desired date data and data key type to array
-                    dataSet.push(`${dataLoaded[key]["4. close"]}`);
-                }        
-            }
+    //     if (loading) {
+    //         return;
+    //     } else if(!loading || dataLoaded) {
+    //         // loop through each day and 30 min key
+    //         for(const key in dataLoaded) {
+    //             // if key has desired date, add to dataSet array for further use
+    //             if(key.includes(dateString) ){
+    //                 // add desired date data and data key type to array
+    //                 dataSet.push(`${dataLoaded[key]["4. close"]}`);
+    //             }        
+    //         }
 
-            // dataSet.splice(0, 5);
-            // dataSet.splice(-10, 10);
+    //         // dataSet.splice(0, 5);
+    //         // dataSet.splice(-10, 10);
 
-            return (
-                // print all relevant data to screen
-                <ul>
-                   {dataSet.map((data, index) => (
-                   <li key={index}>{index}: {data}</li>
-                   ))}
-                </ul>
-            );
-        } else {
-            return (
-                <ul>
-                    <li>No data.</li>
-                </ul>
-            )
-        }
-    }
+    //         return (
+    //             // print all relevant data to screen
+    //             <ul>
+    //                {dataSet.map((data, index) => (
+    //                <li key={index}>{index}: {data}</li>
+    //                ))}
+    //             </ul>
+    //         );
+    //     } else {
+    //         return (
+    //             <ul>
+    //                 <li>No data.</li>
+    //             </ul>
+    //         )
+    //     }
+    // }
 
     const fetchStockData = async () => {
         try {
@@ -78,6 +75,27 @@ export default function StockAPI () {
         }
     };
 
+    useEffect(() => {
+        const apiData = data["Time Series (30min)"];
+        let filtered = [];
+
+        for(const key in apiData) {
+            // if key has desired date, add to dataSet array for further use
+            if(key.includes(dateString) ){
+                // add desired date data and data key type to array
+                filtered.push(`${apiData[key]["4. close"]}`);
+            }        
+        }
+        
+        // remove 730-530PM ET
+        filtered.splice(0, 5);
+        // remove 4AM-830AM ET
+        filtered.splice(-10, 10);
+        //set filtered data state
+        setFilteredData(filtered);
+
+      }, [data]);
+
     return (
         <> 
             <button onClick={fetchStockData}>Print {stockSymbol} stock info for {dateString}</button>
@@ -87,10 +105,15 @@ export default function StockAPI () {
             <Loading 
             loading={loading}
             />
-            <Data
+            {/* <Data
             data={data}
             loading={loading}
-            />
-        </>
+            /> */}
+             <ul>
+                {filteredData.map((data, index) => (
+                    <li key={index}>{index}: {data}</li>
+                ))}
+            </ul>
+    </>
     );
 }
