@@ -1,14 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import axios from 'axios';
 
 export default function StockAPI () {
-    const dateString = "2009-01-21";
-    const stockSymbol = "IBM";
+    const stockSymbol = "AAPL";
+    const dateString = "2023-09-13";
+                            // remove all characters after and including second hyphen
+    const monthYearString = dateString.replace(/(.*?-.*?)-.*/, '$1');
+    const alphaVantageKey = process.env.REACT_APP_ALPHA_VANTAGE_KEY;
+    const apiUri = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${stockSymbol}&interval=30min&month=${monthYearString}&outputsize=full&apikey=${alphaVantageKey}`;
+
     const dataSet = [];
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const apiUri = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${stockSymbol}&interval=30min&month=2009-01&outputsize=full&apikey=${process.env.REACT_APP_ALPHA_VANTAGE_KEY}`;
 
     function Error({ error }) {
         if (error) {
@@ -23,6 +27,7 @@ export default function StockAPI () {
     }
 
     function Data({ data, loading }) {
+        // access all time series data for the month/year
         let dataLoaded = data["Time Series (30min)"];
 
         if (loading) {
@@ -32,15 +37,23 @@ export default function StockAPI () {
                 </ul>
             )
         } else if(!loading && dataLoaded) {
+            // loop through each day and 30 min key
             for(const key in dataLoaded) {
+                // if key has desired date, add to dataSet array for further use
                 if(key.includes(dateString) ){
+                    // add desired date data and data key type to array
                     dataSet.push(`${dataLoaded[key]["4. close"]}`);
-                }         
+                }        
             }
+
+            // dataSet.splice(0, 5);
+            // dataSet.splice(-10, 10);
+
             return (
+                // print all relevant data to screen
                 <ul>
                    {dataSet.map((data, index) => (
-                   <li key={index}>{data}</li>
+                   <li key={index}>{index}: {data}</li>
                    ))}
                 </ul>
             );
@@ -53,23 +66,21 @@ export default function StockAPI () {
         }
     }
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-              const response = await axios.get(apiUri);
-              setData(response.data);
-              setLoading(false);
-            } catch (err) {
-              setError(err);
-              setLoading(false);
-            }
-        };
-          
-        fetchData();
-    }, [apiUri]);
+    const fetchStockData = async () => {
+        try {
+            const response = await axios.get(apiUri);
+            setData(response.data);
+            setError(null);
+            setLoading(false);
+        } catch (err) {
+            setError(err);
+            setLoading(false);
+        }
+    };
 
     return (
         <> 
+            <button onClick={fetchStockData}>Print {stockSymbol} stock info for {dateString}</button>
             <Error
              error={error}
             />
