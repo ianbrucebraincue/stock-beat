@@ -9,10 +9,8 @@ export default function StockAPI () {
     const alphaVantageKey = process.env.REACT_APP_ALPHA_VANTAGE_KEY;
     const apiUri = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${stockSymbol}&interval=30min&month=${monthYearString}&outputsize=full&apikey=${alphaVantageKey}`;
 
-    const dataSet = [];
     const [data, setData] = useState([]);
     const [filteredData, setFilteredData] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     function Error({ error }) {
@@ -21,57 +19,13 @@ export default function StockAPI () {
         }
     }
 
-    function Loading({ loading }) {
-        if (loading) {
-          return <h2 className="loading">Loading...</h2>;
-        }
-    }
-
-    // function Data({ data, loading }) {
-    //     // access all time series data for the month/year
-    //     let dataLoaded = data["Time Series (30min)"];
-
-    //     if (loading) {
-    //         return;
-    //     } else if(!loading || dataLoaded) {
-    //         // loop through each day and 30 min key
-    //         for(const key in dataLoaded) {
-    //             // if key has desired date, add to dataSet array for further use
-    //             if(key.includes(dateString) ){
-    //                 // add desired date data and data key type to array
-    //                 dataSet.push(`${dataLoaded[key]["4. close"]}`);
-    //             }        
-    //         }
-
-    //         // dataSet.splice(0, 5);
-    //         // dataSet.splice(-10, 10);
-
-    //         return (
-    //             // print all relevant data to screen
-    //             <ul>
-    //                {dataSet.map((data, index) => (
-    //                <li key={index}>{index}: {data}</li>
-    //                ))}
-    //             </ul>
-    //         );
-    //     } else {
-    //         return (
-    //             <ul>
-    //                 <li>No data.</li>
-    //             </ul>
-    //         )
-    //     }
-    // }
-
     const fetchStockData = async () => {
         try {
             const response = await axios.get(apiUri);
             setData(response.data);
             setError(null);
-            setLoading(false);
         } catch (err) {
             setError(err);
-            setLoading(false);
         }
     };
 
@@ -89,10 +43,10 @@ export default function StockAPI () {
         
         // remove 730-530PM ET
         filtered.splice(0, 5);
-        // remove 4AM-830AM ET
+        // remove 4-830AM ET
         filtered.splice(-10, 10);
-        //set filtered data state
-        setFilteredData(filtered);
+        //set filtered data state from 9AM - 5PM
+        setFilteredData(filtered.reverse());
 
       }, [data]);
 
@@ -102,13 +56,6 @@ export default function StockAPI () {
             <Error
              error={error}
             />
-            <Loading 
-            loading={loading}
-            />
-            {/* <Data
-            data={data}
-            loading={loading}
-            /> */}
              <ul>
                 {filteredData.map((data, index) => (
                     <li key={index}>{index}: {data}</li>
