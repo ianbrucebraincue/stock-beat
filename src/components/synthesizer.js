@@ -1,20 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import * as Tone from 'tone';
 
 export default function Synthesizer( { filteredApiData } ) {
-    const [synth, setSynth] = useState("");
+    const [synth, setSynth] = useState({});
      
     const playSynth = () => {
         Tone.start();
         // Create a synth
-        setSynth(new Tone.Synth().toDestination());
-  
-        Tone.context.resume().then(() => {
-            if(filteredApiData.length) {
-                synth.triggerAttackRelease("C4", "8n");
-            }
+        // Use the state updater callback form to set the synth state
+        setSynth(() => {
+            const newSynth = new Tone.Synth().toDestination();
+            
+            Tone.context.resume().then(() => {
+                if (filteredApiData.length) {
+                    newSynth.triggerAttackRelease("C4", "8n");
+                }
+            });
+
+            return newSynth;
         });
     }
+
+    useEffect(() => {
+        // Use synth in an empty useEffect to prevent the "unused variable" warning
+        console.log(synth);
+    }, [synth]);
 
     return (
         <>

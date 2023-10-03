@@ -10,7 +10,7 @@ export default function StockAPI () {
     const alphaVantageKey = process.env.REACT_APP_ALPHA_VANTAGE_KEY;
     const apiUri = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${stockSymbol}&interval=30min&month=${monthYearString}&outputsize=full&apikey=${alphaVantageKey}`;
 
-    const [data, setData] = useState([]);
+    const [data, setData] = useState({});
     const [filteredData, setFilteredData] = useState([]);
     const [error, setError] = useState(null);
 
