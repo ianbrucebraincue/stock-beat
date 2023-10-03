@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from 'axios';
+import Synthesizer from '../components/synthesizer';
 
 export default function StockAPI () {
     const stockSymbol = "AAPL";
@@ -29,6 +30,7 @@ export default function StockAPI () {
         }
     };
 
+    //after stock api data retrieved
     useEffect(() => {
         const apiData = data["Time Series (30min)"];
         let filtered = [];
@@ -56,6 +58,7 @@ export default function StockAPI () {
             <Error
              error={error}
             />
+            <Synthesizer filteredApiData={filteredData}/>
              <ul>
                 {filteredData.map((data, index) => (
                     <li key={index}>{index}: {data}</li>
