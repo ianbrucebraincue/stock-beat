@@ -50,7 +50,7 @@ export default function StockAPI () {
         //set filtered data state from 9AM - 5PM
         setFilteredData(filtered.reverse());
 
-      }, [data]);
+    }, [data]);
 
     return (
         <> 
@@ -58,7 +58,7 @@ export default function StockAPI () {
             <Error
              error={error}
             />
-            <Synthesizer filteredApiData={filteredData}/>
+            <Synthesizer filteredApiData={filteredData} data={data}/>
              <ul>
                 {filteredData.map((data, index) => (
                     <li key={index}>{index}: {data}</li>

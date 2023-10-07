@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import * as Tone from 'tone';
 
-export default function Synthesizer( { filteredApiData } ) {
+export default function Synthesizer( { filteredApiData, data } ) {
     const [synth, setSynth] = useState({});
      
     const playSynth = () => {
@@ -10,10 +10,12 @@ export default function Synthesizer( { filteredApiData } ) {
         // Use the state updater callback form to set the synth state
         setSynth(() => {
             const newSynth = new Tone.Synth().toDestination();
+            const now = Tone.now();
             
             Tone.context.resume().then(() => {
                 if (filteredApiData.length) {
-                    newSynth.triggerAttackRelease("C4", "8n");
+                    newSynth.triggerAttackRelease("C4", "8n", now);
+                    newSynth.triggerAttackRelease("E4", "8n", now + 0.5);
                 }
             });
 
@@ -24,7 +26,8 @@ export default function Synthesizer( { filteredApiData } ) {
     useEffect(() => {
         // Use synth in an empty useEffect to prevent the "unused variable" warning
         console.log(synth);
-    }, [synth]);
+        console.log(data);
+    }, [data, synth]);
 
     return (
         <>
