@@ -36,31 +36,51 @@ export default function Synthesizer( { filteredApiData, data } ) {
                 'C7', 'Db7', 'D7', 'Eb7', 'Fb7', 'F7', 'Gb7', 'G7', 'Ab7', 'A7', 'Bb7', 'Cb8',
                 'C8', 'Db8', 'D8', 'Eb8', 'Fb8', 'F8', 'Gb8', 'G8', 'Ab8', 'A8', 'Bb8', 'Cb9',
                 'C9', 'Db9', 'D9', 'Eb9', 'Fb9', 'F9', 'Gb9', 'G9'];
-    const ALPHA_NAMES = ['A','B','C','D','E','F','G'];
-    var startingName = "Eb4";
-    var offset;
-    for(var i=0; i < ALPHA_NAMES.length; i++) {
-        if(startingName.includes(ALPHA_NAMES[i])) {
-            offset = i;
-            break;
+
+    function noteNameToMIDI(noteName)  {
+        var k;
+        var MIDInumber = -1; // default if not found
+        // check both arrays for the noteName
+        for(k = 0; k < MIDI_SHARP_NAMES.length; k++) {
+            if( noteName === MIDI_SHARP_NAMES[k] ||
+                    noteName === MIDI_FLAT_NAMES[k] ) {
+                MIDInumber = k;  // found it
+            }
         }
+        return Number(MIDInumber); // it should be a number already, but...
     }
     
     const MAJOR_SCALE = [0, 2, 4, 5, 7, 9, 11, 12];
-    var myScaleFormula = MAJOR_SCALE;
-    // var startingNote = 60; // middle C
-    var startingNote = 63;  // Eb above middle C
 
-    var scale = [];
-    for(var j = 0; j < myScaleFormula.length; j++) {
-        scale.push( MIDI_NUM_NAMES[myScaleFormula[j] + startingNote] );
-        if(MIDI_SHARP_NAMES[myScaleFormula[j] + startingNote].includes(ALPHA_NAMES[(offset + j) % ALPHA_NAMES.length])) {
-            scale.push( MIDI_SHARP_NAMES[myScaleFormula[j] + startingNote] );
-        } else if(MIDI_FLAT_NAMES[myScaleFormula[j] + startingNote].includes(ALPHA_NAMES[(offset + j) % ALPHA_NAMES.length])) {
-            scale.push( MIDI_FLAT_NAMES[myScaleFormula[j] + startingNote] );
-        } else {
-            scale.push("C7"); // high note used to indicate error
+    function makeScale(scaleFormula, keyNameAndOctave) {
+        var ALPHA_NAMES = ['A','B','C','D','E','F','G'];
+        var startingName = keyNameAndOctave;
+
+        var offset;
+        for(var i = 0; i < ALPHA_NAMES.length; i++) {
+            if(startingName.includes(ALPHA_NAMES[i])) {
+                offset = i;
+                break;
+            }
         }
+
+        var startingNote = noteNameToMIDI(keyNameAndOctave);
+        var myScaleFormula = scaleFormula;
+
+        var madeScale = [];
+        for(var j = 0; j < myScaleFormula.length; j++) {
+            if(MIDI_SHARP_NAMES[myScaleFormula[j] + startingNote].includes(ALPHA_NAMES[(offset + j) % ALPHA_NAMES.length])) {
+                madeScale.push( MIDI_SHARP_NAMES[myScaleFormula[j] + startingNote] );
+                // console.log("one");
+            } else if(MIDI_FLAT_NAMES[myScaleFormula[j] + startingNote].includes(ALPHA_NAMES[(offset + j) % ALPHA_NAMES.length])) {
+                madeScale.push( MIDI_FLAT_NAMES[myScaleFormula[j] + startingNote] );
+                // console.log("two");
+            } else {
+                madeScale.push("C7"); // high note used to indicate error
+            }
+        }
+        console.log(madeScale);
+        return madeScale;
     }
      
     const playSynth = () => {
@@ -76,16 +96,18 @@ export default function Synthesizer( { filteredApiData, data } ) {
             
             Tone.context.resume().then(() => {
                 // if (filteredApiData.length) {
-                //     newSynth.triggerAttackRelease("C4", "8n", now);
-                //     newSynth.triggerAttackRelease("E4", "8n", now + 0.5); // plus half a second
-                // }
-                var pattern = new Tone.Pattern(function(time, note) {
-                    newSynth.triggerAttackRelease(note, "4n", time);
-                }, scale, patternName).start(0);
+                    // Ab, A, Bb, B, Cb, C, C#, Db, D, Eb, E, F, F#, Gb, G
+                    var scale = makeScale(MAJOR_SCALE, 'C#4'); 
+                    // console.log(scale);
 
-                Tone.Transport.bpm.value = tempo;   
-                newSynth.volume.value = volume;
-                Tone.Transport.start("+0.1");
+                    var pattern = new Tone.Pattern(function(time, note) {
+                        newSynth.triggerAttackRelease(note, "4n", time);
+                    }, scale, patternName).start(0);
+
+                    Tone.Transport.bpm.value = tempo;   
+                    newSynth.volume.value = volume;
+                    Tone.Transport.start("+0.1");
+                // }
             });
 
             return newSynth;
@@ -94,9 +116,9 @@ export default function Synthesizer( { filteredApiData, data } ) {
 
     useEffect(() => {
         // Use synth in an empty useEffect to prevent the "unused variable" warning
-        console.log(synth);
+        // console.log(synth);
         console.log(data);
-    }, [data, synth]);
+    }, [synth, data]);
 
     return (
         <>
